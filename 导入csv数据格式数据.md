@@ -131,7 +131,6 @@
         member.add_time=getTimeString(new Date(member.add_time),"yyyy-MM-dd hh:mm:ss")
         member.create_card_time=getTimeString(new Date(member.create_card_time),"yyyy-MM-dd hh:mm:ss")
         member.last_update_time=getTimeString(new Date(member.last_update_time),"yyyy-MM-dd hh:mm:ss")
-        member.create_time=getTimeString(new Date(member.create_time),"yyyy-MM-dd hh:mm:ss")
         member.create_time=member.create_card_time
         if(member.member_birth!==''&&member.member_birth!==undefined){
             member.member_birth=getTimeString(new Date(member.member_birth),"yyyy-MM-dd")
