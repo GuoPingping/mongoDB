@@ -43,102 +43,105 @@
 
 //对于一些无法处理或是有条件限制的字段，可以编写脚本执行
     ```
-    function formatNumber(nubmer) {
-        return nubmer < 10 ? '0' + nubmer : nubmer;
+function getTimeString(dateStr,fmt){
+    date = new Date(dateStr);
+    var o = {
+        "M+": date.getMonth() + 1, //月份 
+        "d+": date.getDate(), //日 
+        "h+": date.getHours(), //小时 
+        "m+": date.getMinutes(), //分 
+        "s+": date.getSeconds(), //秒 
+        "q+": Math.floor((date.getMonth() + 3) / 3), //季度 
+        "S": date.getMilliseconds() //毫秒 
+    };
+    if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (date.getFullYear() + "").substr(4 - RegExp.$1.length));
+    for (var k in o)
+        if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+    return fmt;
+}
+
+//生成编号
+function getListNum(dateStr) {
+    var random_str = "";
+    var date_now =getTimeString(dateStr,"yyMMddhhmmss");
+    var possible = "0123456789";
+    for (var i = 0; i < 6; i++) {
+        random_str += possible.charAt(Math.floor(Math.random() * possible.length));
     }
+    return date_now + random_str;
+}
 
-    function getTimeString(dateStr,fmt){
-        date = new Date(dateStr);
-        var o = {
-            "M+": date.getMonth() + 1, //月份 
-            "d+": date.getDate(), //日 
-            "h+": date.getHours(), //小时 
-            "m+": date.getMinutes(), //分 
-            "s+": date.getSeconds(), //秒 
-            "q+": Math.floor((date.getMonth() + 3) / 3), //季度 
-            "S": date.getMilliseconds() //毫秒 
-        };
-        if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (date.getFullYear() + "").substr(4 - RegExp.$1.length));
-        for (var k in o)
-            if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
-        return fmt;
+var members = db.member_test.find({});
+
+while(members.hasNext()) {
+    var member = members.next();
+    var timeStr = getListNum(new Date(member.add_time));
+    member.list_num = timeStr;
+    member.member_img='img/user.png';
+    member.guest_name='';
+    member.system_id="MEMBER";
+    member.custom_name='';
+    member.member_sources= "会员系统";
+    member.member_label=["会员系统"];
+    member.isWxRegister=true;
+    member.weixin_id='';
+    member.nation='';
+    member.wx_name='';
+    member.wx_sex='';
+    member.language='';
+    member.area='';
+    member.postcodes='';
+    member.is_follow='';
+    member.follow_time='';
+    member.position='';
+    member.company='';
+    member.park_nums= [{"park_nums": ""}];
+    member.papers=[]
+    member.organization='59688d03798e5004d69dab47';
+    member.isLevelsUpdate = "否";
+    member.update_time ="";
+    if(member.paper_num!==''&&!isString(member.paper_num)){
+        member.paper_num=member.paper_num.toString().match(/\d+/g)[0]
+    }else if(member.paper_num!==''&&isString(member.paper_num)){
+            member.paper_num=member.paper_num
+    }else{
+         member.paper_num=''
     }
-
-    //生成编号
-    function getListNum(dateStr) {
-        var random_str = "";
-        var date_now =getTimeString(dateStr,"yyMMddhhmmssSS");
-        var possible = "0123456789";
-        for (var i = 0; i < 4; i++) {
-            random_str += possible.charAt(Math.floor(Math.random() * possible.length));
-        }
-        return date_now + random_str;
+    if(member.paper_type==='身份证'){
+        member.id_num=member.paper_num
+    }else{
+        member.id_num=''
     }
-
-    var members = db.member_test.find({});
-
-    while(members.hasNext()) {
-        var member = members.next();
-        var timeStr = getListNum(new Date(member.add_time));
-        member.list_num = timeStr;
-        member.member_img='img/user.png';
-        member.guest_name='';
-        member.system_id="MEMBER";
-        member.custom_name='';
-        member.member_sources= "会员系统";
-        member.member_label=["会员系统"];
-        member.isWxRegister=true;
-        member.weixin_id='';
-        member.nation='';
-        member.wx_name='';
-        member.wx_sex='';
-        member.language='';
-        member.area='';
-        member.postcodes='';
-        member.is_follow='';
-        member.follow_time='';
-        member.position='';
-        member.company='';
-        member.park_nums= [{"park_nums": ""}];
-        member.papers=[]
-        member.organization='59688d03798e5004d69dab47';
-        member.isLevelsUpdate = "否";
-        member.update_time ="";
-        
-        if(member.levels === '认证会员'){
-            member.register_name=''
-            member.id_num=(member.paper_num+'').toString()
-        }else{
-            member.register_name=member.member_name
-            member.id_num=''
-        }
-        if(member.levels === '普通会员'){
-            member.id_name=''
-            member.isAuthentication=false
-        }else{
-            member.id_name=member.member_name
-            member.isAuthentication=true
-        }
-        
-        member.common_address=member.wx_register_address
-        member.address=member.id_register_address
-        member.papers.push({
-            "paper_type":'身份证',
-            "paper_num":(member.id_num+'').toString()
-        })
-        
-        member.member_name='';
-        member.add_time=getTimeString(new Date(member.add_time),"yyyy-MM-dd hh:mm:ss")
-        member.create_card_time=getTimeString(new Date(member.create_card_time),"yyyy-MM-dd hh:mm:ss")
-        member.last_update_time=getTimeString(new Date(member.last_update_time),"yyyy-MM-dd hh:mm:ss")
-        member.create_time=member.create_card_time
-        if(member.member_birth!==''&&member.member_birth!==undefined){
-            member.member_birth=getTimeString(new Date(member.member_birth),"yyyy-MM-dd")
-        }
-        member.card_num=(member.card_num+'').toString()
-        member.member_phone=(member.member_phone+'').toString()
-        member.paper_num=(member.paper_num+'').toString()
-        db.member_test.save(member);
+    if(member.levels === '认证会员'){
+        member.register_name='' 
+    }else{
+        member.register_name=member.member_name      
     }
-
+    if(member.levels === '普通会员'){
+        member.id_name=''
+        member.isAuthentication=false
+    }else{
+        member.id_name=member.member_name
+        member.isAuthentication=true
+    }
+    
+    member.common_address=member.wx_register_address
+    member.address=member.id_register_address
+    member.papers.push({
+        "paper_type":member.paper_type,
+        "paper_num":member.paper_num
+     })
+     
+     member.member_name='';
+     member.add_time=getTimeString(new Date(member.add_time),"yyyy-MM-dd hh:mm:ss")
+     member.create_card_time=getTimeString(new Date(member.create_card_time),"yyyy-MM-dd hh:mm:ss")
+     member.last_update_time=getTimeString(new Date(member.last_update_time),"yyyy-MM-dd hh:mm:ss")
+     member.create_time=member.create_card_time
+     if(member.member_birth!==''&&member.member_birth!==undefined){
+        member.member_birth=getTimeString(new Date(member.member_birth),"yyyy-MM-dd")
+     }
+     member.card_num=("0"+member.card_num+'').toString()
+     member.member_phone=(member.member_phone+'').toString()
+     db.member_test.save(member);
+}
 ```
