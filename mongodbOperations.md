@@ -51,5 +51,53 @@ mongoDB CRUD Operations
         db.inventory.find( { "instock.qty": { $gt: 10,  $lte: 20 } } )
         db.inventory.find( { "instock.qty": 5, "instock.warehouse": "A" } )
 
+    db.inventory.insertMany( [
+        { item: "journal", status: "A", size: { h: 14, w: 21, uom: "cm" }, instock: [ { warehouse: "A", qty: 5 } ] },
+        { item: "notebook", status: "A",  size: { h: 8.5, w: 11, uom: "in" }, instock: [ { warehouse: "C", qty: 5 } ] },
+        { item: "paper", status: "D", size: { h: 8.5, w: 11, uom: "in" }, instock: [ { warehouse: "A", qty: 60 } ] },
+        { item: "planner", status: "D", size: { h: 22.85, w: 30, uom: "cm" }, instock: [ { warehouse: "A", qty: 40 } ] },
+        { item: "postcard", status: "A", size: { h: 10, w: 15.25, uom: "cm" }, instock: [ { warehouse: "B", qty: 15 }, { warehouse: "C", qty: 35 } ] }
+    ]);
+        db.inventory.find( { status: "A" }, { item: 1, status: 1 } )//select _id,item,status from inventory where status="A"
+        db.inventory.find( { status: "A" }, { item: 1, status: 1, _id: 0 } ))//select item,status from inventory where status="A"
+        db.inventory.find( { status: "A" }, { status: 0, instock: 0 } )//返回除了status和instock以外的所有字段
+        db.inventory.find(
+            { status: "A" },
+            { item: 1, status: 1, "size.uom": 1 }
+        )//返回字段_id,item,status,size中的uom字段，并保持嵌入在size内
+        db.inventory.find( { status: "A" }, { item: 1, status: 1, instock: { $slice: -1 } } )//返回istock字段中的最后一个元素
 
+        db.inventory.insertMany([
+            { _id: 1, item: null },
+            { _id: 2 }
+        ])
+            db.inventory.find( { item: null } )//两个文档都满足
+            db.inventory.find( { item : { $type: 10 } } )//匹配item字段存在，且值为null
+            db.inventory.find( { item : { $exists: false } } )//item字段没有的文档
+
+
+在mongo shell里迭代游标
+    db.collection.find()返回的是一个游标，迭代该游标即可访问文档，如果没有使用var关键字为返回的游标分配变量的话，该游标会自动迭代20次输出结果；
+
+    手动迭代游标
+        在mongo shell，当使用var关键字将find返回的游标分配给变量时，游标不再自动迭代，使用next访问文档
+        
+        var myCursor=db.users.find({type:2})
+        while(myCursor.hasNext()){
+            print(tojson(myCursor.next()))
+            ==printjson(myCursor.next())
+        }
+        myCursor.forEach() //迭代游标文档
+    
+    迭代器序列
+        toArray()迭代游标，将文档返回到数组，将游标中所有文档载入内存，即排空该游标
+    
+    游标行为
+        关闭非活动游标
+            默认，mongo会自动关闭已经排空的游标，或非活动状态达到10分钟的游标，要在mongo shell里
+            覆盖该行为，会使用cursor
+            var myCursor = db.users.find().noCursorTimeout();
+            noCursorTimeout不再因空闲超时自动关闭游标myCursor，必须使用cursor.close方法手动关闭，或排空该游标文档
+        
+        
 ```
