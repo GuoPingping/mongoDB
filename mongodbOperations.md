@@ -1,6 +1,9 @@
 mongoDB CRUD Operations
 
 ```javaScript
+
+find Documents
+
     db.users.insertOne({
         name:'gpp',
         age:'25',
@@ -98,6 +101,57 @@ mongoDB CRUD Operations
             覆盖该行为，会使用cursor
             var myCursor = db.users.find().noCursorTimeout();
             noCursorTimeout不再因空闲超时自动关闭游标myCursor，必须使用cursor.close方法手动关闭，或排空该游标文档
-        
-        
+                
+```
+
+```javaScript
+
+Update Documents
+
+    db.collection.updateOne(<filter>, <update>, <options>);
+    db.collection.updateMany(<filter>, <update>, <options>);
+    db.collection.replaceOne(<filter>, <update>, <options>);
+
+    db.inventory.insertMany( [
+        { item: "canvas", qty: 100, size: { h: 28, w: 35.5, uom: "cm" }, status: "A" },
+        { item: "journal", qty: 25, size: { h: 14, w: 21, uom: "cm" }, status: "A" },
+        { item: "mat", qty: 85, size: { h: 27.9, w: 35.5, uom: "cm" }, status: "A" },
+        { item: "mousepad", qty: 25, size: { h: 19, w: 22.85, uom: "cm" }, status: "P" },
+        { item: "notebook", qty: 50, size: { h: 8.5, w: 11, uom: "in" }, status: "P" },
+        { item: "paper", qty: 100, size: { h: 8.5, w: 11, uom: "in" }, status: "D" },
+        { item: "planner", qty: 75, size: { h: 22.85, w: 30, uom: "cm" }, status: "D" },
+        { item: "postcard", qty: 45, size: { h: 10, w: 15.25, uom: "cm" }, status: "A" },
+        { item: "sketchbook", qty: 80, size: { h: 14, w: 21, uom: "cm" }, status: "A" },
+        { item: "sketch pad", qty: 95, size: { h: 22.85, w: 30.5, uom: "cm" }, status: "A" }
+    ] );
+        db.inventory.updateOne(
+            {item:'paper'},
+            {
+                $set:{'size.uom':'cm',status:"p"},
+                $currentDate:[lastModified:true]
+            })//使用$currentDate操作符更新lastModified字段的值为当前日期，如果lastModified字段不存在，$currentDate将创建该字段
+        db.inventory.updateMany(
+            { "qty": { $lt: 50 } },
+            {
+                $set: { "size.uom": "in", status: "P" },
+                $currentDate: { lastModified: true }
+            }
+        )
+        db.inventory.replaceOne(
+            { item: "paper" },
+            { item: "paper", instock: [ { warehouse: "A", qty: 60 }, { warehouse: "B", qty: 40 } ] }
+        )//替换除_id以外的整个文档
+
+    更新行为
+        Atomicity原子性
+            所有的写操作在单个文档层面都是原子性的
+        _id Field
+            一旦赋值，将不能更改_id字段的值
+        Document Size文档大小
+            当更新或替换操作增大了文档大小并超过了该文档分配的空间时，mongodb会重新存储该文档
+        Field Order字段排序
+        Upsert Option更新插入操作
+        Write Acknowledgement
+
+
 ```
