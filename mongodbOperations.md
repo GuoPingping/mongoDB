@@ -153,5 +153,19 @@ Update Documents
         Upsert Option更新插入操作
         Write Acknowledgement
 
+```
+
+```javaScript
+
+Delete Documents
+
+db.inventory.deleteMany({status: "D" })
+db.inventory.deleteOne( { status: "D" } )
+
+删除行为
+    Indexes索引
+        即使删除集合中所有文档，也不会移出索引
+    Atomicity
+    Write Acknowledgement
 
 ```
